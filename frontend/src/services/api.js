@@ -66,3 +66,30 @@ export async function deleteStory(id) {
 export function getAudioUrl(filename) {
   return `${API_BASE}/audio/${filename}`
 }
+
+export async function getVoices() {
+  const response = await fetch(`${API_BASE}/voices`)
+  return response.json()
+}
+
+export async function createCustomVoice(formData) {
+  /**
+   * Create a custom voice from audio file
+   * 
+   * formData should be a FormData object with:
+   * - audio_file: File
+   * - name: string
+   * - description: string (optional)
+   */
+  const response = await fetch(`${API_BASE}/voices/create`, {
+    method: 'POST',
+    body: formData  // Don't set Content-Type header for multipart/form-data
+  })
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Failed to create voice' }))
+    throw new Error(errorData.error || `HTTP ${response.status}: Failed to create voice`)
+  }
+  
+  return response.json()
+}

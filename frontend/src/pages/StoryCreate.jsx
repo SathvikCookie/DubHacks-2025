@@ -5,10 +5,12 @@ import { createStory } from '../services/api'
 import GradientButton from '../components/GradientButton'
 import GlassCard from '../components/GlassCard'
 import LoadingOverlay from '../components/LoadingOverlay'
+import VoiceSelector from '../components/VoiceSelector'
 
 function StoryCreate() {
   const navigate = useNavigate()
   const [prompt, setPrompt] = useState('')
+  const [selectedVoiceId, setSelectedVoiceId] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState(null)
 
@@ -20,14 +22,23 @@ function StoryCreate() {
       return
     }
 
+    if (!selectedVoiceId) {
+      setError('Please select a voice')
+      return
+    }
+
     setIsGenerating(true)
     setError(null)
     
     try {
       console.log('🤖 Generating story from prompt:', prompt)
+      console.log('🎤 Using voice ID:', selectedVoiceId)
       
       // Call backend to generate story with Gemini + audio
-      const response = await createStory({ prompt })
+      const response = await createStory({ 
+        prompt,
+        voice_id: selectedVoiceId 
+      })
       
       console.log('✓ Story created:', response)
       
@@ -149,6 +160,12 @@ function StoryCreate() {
                   <span>Tip: Include your child's name, the lesson you want to teach, and any preferences (animals, themes, etc.)</span>
                 </p>
               </div>
+
+              {/* Voice Selector */}
+              <VoiceSelector 
+                selectedVoiceId={selectedVoiceId}
+                onVoiceSelect={setSelectedVoiceId}
+              />
               
               {error && (
                 <motion.div
@@ -166,7 +183,7 @@ function StoryCreate() {
               
               <GradientButton
                 type="submit"
-                disabled={isGenerating || !prompt.trim()}
+                disabled={isGenerating || !prompt.trim() || !selectedVoiceId}
                 className="w-full text-lg py-4"
                 size="large"
               >
