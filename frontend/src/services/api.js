@@ -54,6 +54,12 @@ export async function deleteStory(id) {
   const response = await fetch(`${API_BASE}/stories/${id}`, {
     method: 'DELETE'
   })
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Failed to delete story' }))
+    throw new Error(errorData.error || `HTTP ${response.status}: Failed to delete story`)
+  }
+  
   return response.json()
 }
 
