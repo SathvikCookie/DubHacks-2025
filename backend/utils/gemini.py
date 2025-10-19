@@ -1,20 +1,38 @@
 from textwrap import dedent
+import os
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+
+load_dotenv()
 
 # Gemini API integration
 def generate_story(prompt):
     """
     Generate a story using Gemini API
     """
-    client = genai.Client()
+    api_key = os.getenv('GEMINI_API_KEY')
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY not found in environment variables")
+    
+    client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION),
         contents=prompt
     )
-    return response.text
+    
+    # Clean up response - remove markdown code blocks if present
+    text = response.text.strip()
+    if text.startswith('```json'):
+        text = text[7:]  # Remove ```json
+    if text.startswith('```'):
+        text = text[3:]  # Remove ```
+    if text.endswith('```'):
+        text = text[:-3]  # Remove trailing ```
+    
+    return text.strip()
 
 SYSTEM_INSTRUCTION = dedent(
     '''
