@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getStory, getAudioUrl } from '../services/api'
 import { setLightColor } from '../utils/lightController'
-import EmotionStrip from '../components/EmotionStrip'
+import { getEmotionColor, getEmotionLabel, getEmotionMessage } from '../utils/emotions'
+import GlassCard from '../components/GlassCard'
 
 function PlayerFullScreen() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [story, setStory] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0)
   const [progress, setProgress] = useState(0)
+  const [currentEmotion, setCurrentEmotion] = useState('neutral')
   const audioRef = useRef(null)
 
   useEffect(() => {
@@ -20,6 +24,11 @@ function PlayerFullScreen() {
     const data = await getStory(id)
     setStory(data)
     console.log('Story loaded:', data)
+    
+    // Set initial emotion
+    if (data.segments && data.segments[0]) {
+      setCurrentEmotion(data.segments[0].emotion || 'neutral')
+    }
   }
 
   // Function to trigger events at the start of each segment
@@ -30,8 +39,11 @@ function PlayerFullScreen() {
       audioFile: story.audio_segments[segmentIndex]?.filename
     })
 
-    // Set Govee light color based on emotion
+    // Set current emotion for smooth transition
     const emotion = segment?.emotion || 'neutral'
+    setCurrentEmotion(emotion)
+    
+    // Set Govee light color based on emotion
     console.log(`💡 Setting light to: ${emotion}`)
     setLightColor(emotion)
   }
@@ -58,14 +70,12 @@ function PlayerFullScreen() {
       return
     }
 
-    // Trigger segment start event (for lights, etc.)
+    // Trigger segment start event (for lights, emotion transition, etc.)
     onSegmentStart(storySegment, segmentIndex)
 
     // Load and play audio
     const audioUrl = getAudioUrl(audioSegment.filename)
     console.log(`🎵 Loading audio: ${audioUrl}`)
-    console.log(`   Segment:`, storySegment)
-    console.log(`   Audio metadata:`, audioSegment)
     
     if (audioRef.current) {
       audioRef.current.src = audioUrl
@@ -79,14 +89,6 @@ function PlayerFullScreen() {
         })
         .catch(error => {
           console.error(`❌ Error playing segment ${segmentIndex}:`, error)
-          console.error('Error name:', error.name)
-          console.error('Error message:', error.message)
-          console.error('Audio element state:', {
-            src: audioRef.current.src,
-            readyState: audioRef.current.readyState,
-            networkState: audioRef.current.networkState,
-            error: audioRef.current.error
-          })
           // Try next segment on error
           if (segmentIndex < story.audio_segments.length - 1) {
             setTimeout(() => {
@@ -161,7 +163,7 @@ function PlayerFullScreen() {
       setIsPlaying(true)
       console.log('▶ Playing')
       
-      // ⭐ Start playing the current segment immediately
+      // Start playing the current segment immediately
       playSegment(currentSegmentIndex)
     }
   }
@@ -175,25 +177,52 @@ function PlayerFullScreen() {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
     }
+    // Reset to first emotion
+    if (story?.segments?.[0]) {
+      setCurrentEmotion(story.segments[0].emotion || 'neutral')
+    }
   }
 
   if (!story) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-2xl text-white">Loading story...</div>
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="h-screen flex items-center justify-center"
+      >
+        <div className="text-center">
+          <motion.div
+            className="text-8xl mb-4"
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          >
+            📚
+          </motion.div>
+          <div className="text-2xl text-white">Loading story...</div>
+        </div>
+      </motion.div>
     )
   }
 
   if (!story.audio_segments || story.audio_segments.length === 0) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-center text-white">
-          <div className="text-4xl mb-4">⚠️</div>
-          <div className="text-2xl mb-2">No audio available</div>
-          <div className="text-gray-400">This story hasn't been processed yet</div>
-        </div>
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="h-screen flex items-center justify-center px-4"
+      >
+        <GlassCard className="text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <div className="text-2xl text-white mb-3">No audio available</div>
+          <div className="text-white/70 mb-6">This story hasn't been processed yet</div>
+          <button
+            onClick={() => navigate('/')}
+            className="gradient-button"
+          >
+            Back to Stories
+          </button>
+        </GlassCard>
+      </motion.div>
     )
   }
 
@@ -202,93 +231,188 @@ function PlayerFullScreen() {
     : { emotion: 'neutral', text: '' }
 
   const totalSegments = story.audio_segments.length
+  const emotionColor = getEmotionColor(currentEmotion)
 
   return (
-    <div className="h-screen flex flex-col bg-gray-900">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="h-screen flex flex-col relative overflow-hidden"
+    >
       {/* Hidden audio element */}
       <audio ref={audioRef} />
       
-      {/* Emotion Strip */}
-      <EmotionStrip sentimentData={[currentSegment]} />
-      
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
-        <h1 className="text-5xl font-bold mb-8 text-center text-white">
-          {story.title}
-        </h1>
+      {/* Animated emotion-based background with smooth transitions */}
+      <motion.div
+        className="absolute inset-0 z-0"
+        animate={{
+          backgroundColor: emotionColor
+        }}
+        transition={{ duration: 1.2, ease: 'easeInOut' }}
+      >
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/30" />
         
-        {/* Current Segment Text */}
-        <div className="max-w-3xl mb-8 bg-white/10 backdrop-blur-md rounded-2xl p-8">
-          <p className="text-xl text-white leading-relaxed">
-            {currentSegment.text}
-          </p>
-        </div>
-
-        {/* Segment Counter */}
-        <div className="text-white/70 mb-2 text-lg">
-          Segment {currentSegmentIndex + 1} of {totalSegments}
-        </div>
-
-        {/* Current Emotion Badge */}
-        <div className="mb-6 bg-white/20 backdrop-blur-md px-6 py-2 rounded-full">
-          <span className="text-white font-semibold text-lg capitalize">
-            Emotion: {currentSegment.emotion}
-          </span>
-        </div>
-        
-        {/* Controls */}
-        <div className="flex items-center gap-6 mb-8">
-          <button
-            onClick={handleRestart}
-            className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all text-2xl"
-            title="Restart"
-          >
-            ↻
-          </button>
-          
-          <button
-            onClick={togglePlay}
-            className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center justify-center text-3xl shadow-lg transition-all hover:scale-105"
-            title={isPlaying ? 'Pause' : 'Play'}
-          >
-            {isPlaying ? '⏸' : '▶'}
-          </button>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="w-full max-w-2xl">
-          <div className="h-2 bg-white/20 rounded-full">
-            <div 
-              className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className="mt-2 text-center text-white/50 text-sm">
-            {Math.round(progress)}% complete
-          </div>
-        </div>
-
-        {/* Status */}
-        <div className="mt-4 text-white/50 text-sm">
-          {isPlaying ? '🎵 Playing...' : progress === 100 ? '✓ Complete' : progress === 0 ? '🎧 Ready to play' : '⏸ Paused'}
-        </div>
-
-        {/* Debug info (can be removed in production) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-8 text-white/30 text-xs text-center max-w-2xl">
-            <div>Current segment: {currentSegmentIndex}</div>
-            <div>Audio file: {story.audio_segments[currentSegmentIndex]?.filename || 'N/A'}</div>
-          </div>
-        )}
-      </div>
-
-      {/* Overall Progress Indicator */}
-      <div className="bg-white/10 backdrop-blur-sm">
-        <div 
-          className="h-2 bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
-          style={{ width: `${progress}%` }}
+        {/* Animated orbs for ambient effect */}
+        <motion.div
+          className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-30"
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, 30, 0]
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ backgroundColor: emotionColor }}
         />
+        <motion.div
+          className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-20"
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, -30, 0],
+            y: [0, -50, 0]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ backgroundColor: emotionColor }}
+        />
+      </motion.div>
+
+      {/* Back button */}
+      <div className="relative z-10 p-6">
+        <motion.button
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          onClick={() => navigate('/')}
+          className="text-white/80 hover:text-white flex items-center gap-2 transition-all group"
+        >
+          <motion.span
+            className="group-hover:-translate-x-1 transition-transform"
+          >
+            ←
+          </motion.span>
+          <span>Back to Stories</span>
+        </motion.button>
       </div>
-    </div>
+
+      {/* Main content - with proper scrolling container */}
+      <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
+        <div className="flex-1 overflow-y-auto py-4 md:py-8 px-4 md:px-8">
+          <motion.div
+            className="w-full max-w-4xl mx-auto flex flex-col items-center min-h-full"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            {/* Title - always visible at top */}
+            <motion.h1
+              className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 text-center text-white drop-shadow-lg px-4 flex-shrink-0"
+              layoutId={`story-title-${story.id}`}
+            >
+              {story.title}
+            </motion.h1>
+            
+            {/* Current Emotion Badge */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentEmotion}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.5 }}
+                className="mb-3 md:mb-4 text-center flex-shrink-0"
+              >
+                <div className="inline-block bg-white/20 backdrop-blur-md px-3 md:px-5 py-2 rounded-full border border-white/30">
+                  <span className="text-white font-semibold text-sm md:text-base">
+                    {getEmotionLabel(currentEmotion)}
+                  </span>
+                </div>
+                <p className="text-white/80 text-xs mt-1">
+                  {getEmotionMessage(currentEmotion)}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Current Segment Text with smooth transitions and controlled height */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSegmentIndex}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.8 }}
+                className="mb-3 md:mb-4 w-full max-w-3xl px-2 flex-shrink-0"
+              >
+                <GlassCard className="max-h-[30vh] overflow-y-auto custom-scrollbar" hover={false}>
+                  <p className="text-base md:text-lg lg:text-xl text-white leading-relaxed text-center">
+                    {currentSegment.text}
+                  </p>
+                </GlassCard>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Segment Counter */}
+            <div className="text-white/70 mb-3 md:mb-4 text-center text-sm md:text-base flex-shrink-0">
+              Segment {currentSegmentIndex + 1} of {totalSegments}
+            </div>
+            
+            {/* Controls */}
+            <div className="flex items-center justify-center gap-4 md:gap-6 mb-3 md:mb-4 flex-shrink-0">
+              <motion.button
+                onClick={handleRestart}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white flex items-center justify-center transition-all text-lg md:text-xl shadow-lg"
+                title="Restart"
+              >
+                ↻
+              </motion.button>
+              
+              <motion.button
+                onClick={togglePlay}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/90 hover:bg-white text-gray-900 flex items-center justify-center text-3xl shadow-2xl transition-all"
+                title={isPlaying ? 'Pause' : 'Play'}
+                animate={isPlaying ? {
+                  boxShadow: [
+                    '0 20px 60px rgba(255, 255, 255, 0.3)',
+                    '0 20px 80px rgba(255, 255, 255, 0.5)',
+                    '0 20px 60px rgba(255, 255, 255, 0.3)'
+                  ]
+                } : {}}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                {isPlaying ? '⏸' : '▶'}
+              </motion.button>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full max-w-2xl px-2 mb-3 flex-shrink-0">
+              <div className="h-2 md:h-3 bg-white/20 rounded-full backdrop-blur-sm overflow-hidden">
+                <motion.div 
+                  className="h-full bg-white/90 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+              <div className="mt-2 text-center text-white/70 text-xs">
+                {Math.round(progress)}% complete
+              </div>
+            </div>
+
+            {/* Status */}
+            <motion.div
+              className="mt-2 text-center text-white/70 text-xs mb-4 flex-shrink-0"
+              animate={{ opacity: [0.7, 1, 0.7] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              {isPlaying ? '🎵 Playing...' : progress === 100 ? '✓ Complete' : progress === 0 ? '🎧 Ready to play' : '⏸ Paused'}
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+    </motion.div>
   )
 }
 

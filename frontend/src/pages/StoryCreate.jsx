@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { createStory } from '../services/api'
+import GradientButton from '../components/GradientButton'
+import GlassCard from '../components/GlassCard'
+import LoadingOverlay from '../components/LoadingOverlay'
 
 function StoryCreate() {
   const navigate = useNavigate()
@@ -27,8 +31,10 @@ function StoryCreate() {
       
       console.log('✓ Story created:', response)
       
-      // Navigate to player with the new story
-      navigate(`/player/${response.id}`)
+      // Show success briefly before navigating
+      setTimeout(() => {
+        navigate(`/player/${response.id}`)
+      }, 500)
       
     } catch (err) {
       console.error('Error creating story:', err)
@@ -38,76 +44,140 @@ function StoryCreate() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-8">
-      <div className="container mx-auto px-4 max-w-3xl">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen py-8 px-4 relative"
+    >
+      {/* Loading Overlay */}
+      {isGenerating && (
+        <LoadingOverlay
+          message="✨ Creating your magical story..."
+          steps={[
+            'Generating story with AI...',
+            'Analyzing emotions in the story...',
+            'Creating narrated audio segments...',
+            'Preparing your story for playback...'
+          ]}
+        />
+      )}
+
+      <div className="container mx-auto max-w-4xl relative z-10">
         {/* Header */}
-        <div className="mb-8">
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8"
+        >
           <button
             onClick={() => navigate('/')}
-            className="text-gray-600 hover:text-gray-800 mb-4 flex items-center transition-colors"
+            className="text-white/70 hover:text-white mb-6 flex items-center gap-2 transition-all group"
             disabled={isGenerating}
           >
-            ← Back to Stories
+            <motion.span
+              className="group-hover:-translate-x-1 transition-transform"
+            >
+              ←
+            </motion.span>
+            <span>Back to Stories</span>
           </button>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">✨ Create New Story</h1>
-          <p className="text-gray-600">Generate a magical AI story with emotion-aware narration</p>
-        </div>
+          
+          <motion.h1
+            className="text-5xl md:text-6xl font-bold text-white mb-4"
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            ✨ Create New Story
+          </motion.h1>
+          <p className="text-white/70 text-lg">
+            Generate a magical AI story with emotion-aware narration
+          </p>
+        </motion.div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit}>
+        <motion.form
+          onSubmit={handleSubmit}
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
           {/* AI Generation Section */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-6">
-            <div className="flex items-start gap-3 mb-6">
-              <div className="text-4xl">🤖</div>
+          <GlassCard className="mb-6" hover={false}>
+            <div className="flex items-start gap-4 mb-6">
+              <motion.div
+                className="text-5xl"
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                🤖
+              </motion.div>
               <div>
-                <h2 className="text-2xl font-semibold text-gray-800">AI Story Generator</h2>
-                <p className="text-sm text-gray-600 mt-1">
+                <h2 className="text-3xl font-semibold text-white mb-2">
+                  AI Story Generator
+                </h2>
+                <p className="text-white/70">
                   Describe your story idea and our AI will create a personalized bedtime story
                   with emotion-aware narration and audio
                 </p>
               </div>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white/90 mb-3">
                   Story Prompt *
                 </label>
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  rows="4"
+                  rows="5"
                   disabled={isGenerating}
-                  className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full px-5 py-4 rounded-xl bg-white/10 border-2 border-white/20 
+                           focus:border-story-purple-400 focus:ring-2 focus:ring-story-purple-400/50 
+                           text-white placeholder-white/40 transition-all 
+                           disabled:bg-white/5 disabled:cursor-not-allowed
+                           backdrop-blur-sm"
                   placeholder="Example: Write a story for my child about being brave. My kid's name is Alex. Use animal characters and teach a lesson about trying new things."
                   required
                 />
-                <p className="text-xs text-gray-500 mt-2">
-                  💡 Tip: Include your child's name, the lesson you want to teach, and any preferences (animals, themes, etc.)
+                <p className="text-white/50 text-sm mt-3 flex items-start gap-2">
+                  <span>💡</span>
+                  <span>Tip: Include your child's name, the lesson you want to teach, and any preferences (animals, themes, etc.)</span>
                 </p>
               </div>
               
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-2">
-                  <span className="text-red-500 text-xl">⚠️</span>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-red-500/20 border border-red-500/50 rounded-xl p-4 flex items-start gap-3"
+                >
+                  <span className="text-red-400 text-2xl">⚠️</span>
                   <div>
-                    <p className="text-red-800 font-medium">Error</p>
-                    <p className="text-red-600 text-sm">{error}</p>
+                    <p className="text-red-300 font-medium">Error</p>
+                    <p className="text-red-200 text-sm">{error}</p>
                   </div>
-                </div>
+                </motion.div>
               )}
               
-              <button
+              <GradientButton
                 type="submit"
                 disabled={isGenerating || !prompt.trim()}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full text-lg py-4"
+                size="large"
               >
                 {isGenerating ? (
                   <span className="flex items-center justify-center gap-3">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                    </svg>
+                    <motion.span
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    >
+                      ✨
+                    </motion.span>
                     <span>Generating Story & Audio...</span>
                   </span>
                 ) : (
@@ -116,70 +186,67 @@ function StoryCreate() {
                     <span>Generate Story</span>
                   </span>
                 )}
-              </button>
+              </GradientButton>
             </div>
-          </div>
+          </GlassCard>
 
           {/* Info Box */}
-          {isGenerating && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-              <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                <span className="text-xl">🔮</span>
-                Creating Your Story...
-              </h3>
-              <div className="space-y-2 text-sm text-blue-800">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span>Generating story with AI...</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <span>Analyzing emotions in the story...</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                  <span>Creating narrated audio segments...</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.6s' }}></div>
-                  <span>Preparing your story for playback...</span>
-                </div>
-              </div>
-              <p className="text-xs text-blue-600 mt-4">
-                ⏱ This usually takes 30-60 seconds
-              </p>
-            </div>
-          )}
-
-          {!isGenerating && (
-            <div className="bg-purple-50 border border-purple-200 rounded-xl p-6">
-              <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
-                <span className="text-xl">💫</span>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
+            <GlassCard hover={false}>
+              <h3 className="font-semibold text-white text-lg mb-4 flex items-center gap-2">
+                <span className="text-2xl">💫</span>
                 What happens next?
               </h3>
-              <ul className="space-y-2 text-sm text-purple-800">
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">✓</span>
-                  <span>AI generates a personalized 5-minute bedtime story</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">✓</span>
-                  <span>Story is broken into emotion-tagged segments</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">✓</span>
-                  <span>Each segment is narrated with expressive voice acting</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">✓</span>
-                  <span>You'll be taken to the player to listen and enjoy!</span>
-                </li>
+              <ul className="space-y-3">
+                {[
+                  'AI generates a personalized 5-minute bedtime story',
+                  'Story is broken into emotion-tagged segments',
+                  'Each segment is narrated with expressive voice acting',
+                  'You\'ll be taken to the player to listen and enjoy!'
+                ].map((item, idx) => (
+                  <motion.li
+                    key={idx}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.7 + idx * 0.1 }}
+                    className="flex items-start gap-3 text-white/80"
+                  >
+                    <span className="text-story-purple-400 mt-1">✓</span>
+                    <span>{item}</span>
+                  </motion.li>
+                ))}
               </ul>
-            </div>
-          )}
-        </form>
+            </GlassCard>
+          </motion.div>
+        </motion.form>
       </div>
-    </div>
+
+      {/* Decorative floating elements */}
+      <motion.div
+        className="absolute top-20 right-10 text-6xl opacity-20"
+        animate={{
+          y: [0, -20, 0],
+          rotate: [0, 10, 0]
+        }}
+        transition={{ duration: 4, repeat: Infinity }}
+      >
+        ✨
+      </motion.div>
+      <motion.div
+        className="absolute bottom-20 left-10 text-5xl opacity-20"
+        animate={{
+          y: [0, 20, 0],
+          rotate: [0, -10, 0]
+        }}
+        transition={{ duration: 5, repeat: Infinity }}
+      >
+        🌙
+      </motion.div>
+    </motion.div>
   )
 }
 
