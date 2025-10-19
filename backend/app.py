@@ -2,6 +2,10 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from config import Config
 from models import db
+from api.stories import stories_bp
+from api.tts import tts_bp
+from api.audio import audio_bp
+from api.lights import lights_bp
 
 def create_app():
     app = Flask(__name__)
@@ -14,11 +18,6 @@ def create_app():
     with app.app_context():
         db.create_all()
     
-    # Register blueprints
-    from api.stories import stories_bp
-    from api.tts import tts_bp
-    from api.audio import audio_bp
-    from api.lights import lights_bp
     
     app.register_blueprint(stories_bp, url_prefix='/api/stories')
     app.register_blueprint(tts_bp, url_prefix='/api/tts')
