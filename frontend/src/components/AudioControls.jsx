@@ -1,3 +1,9 @@
+// This component is no longer used in the refactored PlayerFullScreen
+// The audio controls are now integrated directly into the player with better animations
+// Keeping this file for backwards compatibility
+
+import { motion } from 'framer-motion'
+
 function AudioControls({ isPlaying, progress, duration, onTogglePlay, onSeek, onRestart }) {
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60)
@@ -19,23 +25,33 @@ function AudioControls({ isPlaying, progress, duration, onTogglePlay, onSeek, on
     <div className="w-full max-w-2xl">
       {/* Main Play Button */}
       <div className="flex items-center justify-center gap-8 mb-8">
-        <button
+        <motion.button
           onClick={onRestart}
-          className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white flex items-center justify-center transition-all hover:scale-110"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white flex items-center justify-center transition-all shadow-lg"
           aria-label="Restart"
         >
-          <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" />
-          </svg>
-        </button>
+          <span className="text-2xl">↻</span>
+        </motion.button>
 
-        <button
+        <motion.button
           onClick={onTogglePlay}
-          className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center justify-center text-4xl shadow-2xl transition-all hover:scale-110"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="w-28 h-28 rounded-full bg-white/90 hover:bg-white text-gray-900 flex items-center justify-center text-4xl shadow-2xl transition-all"
           aria-label={isPlaying ? 'Pause' : 'Play'}
+          animate={isPlaying ? {
+            boxShadow: [
+              '0 20px 60px rgba(255, 255, 255, 0.3)',
+              '0 20px 80px rgba(255, 255, 255, 0.5)',
+              '0 20px 60px rgba(255, 255, 255, 0.3)'
+            ]
+          } : {}}
+          transition={{ duration: 2, repeat: Infinity }}
         >
           {isPlaying ? '⏸' : '▶'}
-        </button>
+        </motion.button>
 
         <div className="w-16 h-16" /> {/* Spacer for symmetry */}
       </div>
@@ -44,11 +60,12 @@ function AudioControls({ isPlaying, progress, duration, onTogglePlay, onSeek, on
       <div className="space-y-2">
         <div 
           onClick={handleProgressClick}
-          className="h-2 bg-white/20 rounded-full cursor-pointer hover:h-3 transition-all relative group"
+          className="h-3 bg-white/20 rounded-full cursor-pointer hover:h-4 transition-all relative group backdrop-blur-sm overflow-hidden"
         >
-          <div 
-            className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full transition-all duration-200"
-            style={{ width: `${progress}%` }}
+          <motion.div 
+            className="h-full bg-white/90 rounded-full"
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.5 }}
           />
           
           {/* Progress handle */}
@@ -59,18 +76,24 @@ function AudioControls({ isPlaying, progress, duration, onTogglePlay, onSeek, on
         </div>
 
         {/* Time Display */}
-        <div className="flex justify-between text-white/70 text-sm">
-          <span>{formatTime(currentTime)}</span>
-          <span>-{formatTime(remainingTime)}</span>
-        </div>
+        {duration && (
+          <div className="flex justify-between text-white/70 text-sm">
+            <span>{formatTime(currentTime)}</span>
+            <span>-{formatTime(remainingTime)}</span>
+          </div>
+        )}
       </div>
 
       {/* Playback Info */}
-      <div className="mt-6 text-center">
-        <p className="text-white/50 text-sm">
+      <motion.div
+        className="mt-6 text-center"
+        animate={{ opacity: [0.7, 1, 0.7] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
+        <p className="text-white/70 text-sm">
           {isPlaying ? '🎵 Playing...' : progress === 0 ? '🎧 Ready to play' : '⏸ Paused'}
         </p>
-      </div>
+      </motion.div>
     </div>
   )
 }
