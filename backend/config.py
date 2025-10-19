@@ -5,7 +5,15 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key')
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///storybook.db')
+
+    # Get the base directory (where config.py is located)
+    basedir = os.path.abspath(os.path.dirname(__file__))
+
+    # Use absolute path for database
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        'DATABASE_URL',
+        f'sqlite:///{os.path.join(basedir, "instance", "storybook.db")}'
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # API Keys
