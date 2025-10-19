@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { getStories } from '../services/api'
+import { motion, AnimatePresence } from 'framer-motion'
+import { getStories, deleteStory } from '../services/api'
 import { getEmotionColor } from '../utils/emotions'
 import GlassCard from '../components/GlassCard'
 import FloatingCreateButton from '../components/FloatingCreateButton'
@@ -27,6 +27,20 @@ function StoriesList() {
       setError('Failed to load stories. Make sure the backend is running.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDeleteStory = async (storyId, storyTitle) => {
+    try {
+      console.log(`Attempting to delete story: "${storyTitle}" (ID: ${storyId})`)
+      await deleteStory(storyId)
+      // Remove the story from the local state
+      setStories(stories.filter(story => story.id !== storyId))
+      console.log(`✓ Story "${storyTitle}" (${storyId}) deleted successfully`)
+    } catch (err) {
+      console.error('Error deleting story:', err)
+      console.error('Error details:', err.message)
+      alert(`Failed to delete story: ${err.message}\n\nMake sure the backend is running on port 5001.`)
     }
   }
 
@@ -157,7 +171,12 @@ function StoriesList() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {stories.map((story, idx) => (
-                <StoryCard key={story.id} story={story} index={idx} />
+                <StoryCard 
+                  key={story.id} 
+                  story={story} 
+                  index={idx} 
+                  onDelete={handleDeleteStory}
+                />
               ))}
             </div>
           </>
@@ -193,7 +212,7 @@ function StoriesList() {
 }
 
 // Story Card Component with Glass-morphism
-function StoryCard({ story, index }) {
+function StoryCard({ story, index, onDelete }) {
   const navigate = useNavigate()
   
   // Get emotion colors for preview
@@ -203,6 +222,15 @@ function StoryCard({ story, index }) {
   const hasAudio = story.audio_segments && story.audio_segments.length > 0
   const audioCount = story.audio_segments?.length || 0
 
+  const handleCardClick = () => {
+    navigate(`/player/${story.id}`)
+  }
+
+  const handleDeleteClick = (e) => {
+    e.stopPropagation() // Prevent card click when deleting
+    onDelete(story.id, story.title)
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -210,9 +238,21 @@ function StoryCard({ story, index }) {
       transition={{ delay: index * 0.1 }}
     >
       <GlassCard
-        className="h-full cursor-pointer overflow-hidden p-0 group"
-        onClick={() => navigate(`/player/${story.id}`)}
+        className="h-full cursor-pointer overflow-hidden p-0 group relative"
+        onClick={handleCardClick}
       >
+        {/* Delete button - positioned in bottom left */}
+        <motion.button
+          onClick={handleDeleteClick}
+          className="absolute bottom-3 left-3 z-10 w-9 h-9 rounded-full bg-red-500/80 hover:bg-red-500 
+                     text-white flex items-center justify-center opacity-0 group-hover:opacity-100 
+                     transition-all duration-200 shadow-lg text-lg"
+          whileHover={{ scale: 1.15 }}
+          whileTap={{ scale: 0.9 }}
+          title="Delete story"
+        >
+          🗑️
+        </motion.button>
         {/* Emotion Color Preview Strip */}
         <div className="h-2 flex">
           {emotionColors.slice(0, 10).map((color, idx) => (
