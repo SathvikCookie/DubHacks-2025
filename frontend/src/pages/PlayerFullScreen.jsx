@@ -183,6 +183,74 @@ function PlayerFullScreen() {
     }
   }
 
+  const handleSkipForward = () => {
+    if (!story || currentSegmentIndex >= story.audio_segments.length - 1) {
+      console.log('⏭ Already at last segment')
+      return
+    }
+    
+    console.log(`⏭ Skip forward: ${currentSegmentIndex} → ${currentSegmentIndex + 1}`)
+    
+    // Stop current audio
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+    
+    // Move to next segment
+    const nextIndex = currentSegmentIndex + 1
+    setCurrentSegmentIndex(nextIndex)
+    
+    // Update progress
+    const newProgress = ((nextIndex) / story.audio_segments.length) * 100
+    setProgress(newProgress)
+    
+    // The useEffect will handle playing the segment if isPlaying is true
+    // For paused state, manually update emotion and lights
+    if (!isPlaying) {
+      const nextSegment = story.segments[nextIndex]
+      if (nextSegment) {
+        const emotion = nextSegment.emotion || 'neutral'
+        setCurrentEmotion(emotion)
+        setLightColor(emotion)
+      }
+    }
+  }
+
+  const handleSkipBackward = () => {
+    if (!story || currentSegmentIndex <= 0) {
+      console.log('⏮ Already at first segment')
+      return
+    }
+    
+    console.log(`⏮ Skip backward: ${currentSegmentIndex} → ${currentSegmentIndex - 1}`)
+    
+    // Stop current audio
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+    
+    // Move to previous segment
+    const prevIndex = currentSegmentIndex - 1
+    setCurrentSegmentIndex(prevIndex)
+    
+    // Update progress
+    const newProgress = ((prevIndex) / story.audio_segments.length) * 100
+    setProgress(newProgress)
+    
+    // The useEffect will handle playing the segment if isPlaying is true
+    // For paused state, manually update emotion and lights
+    if (!isPlaying) {
+      const prevSegment = story.segments[prevIndex]
+      if (prevSegment) {
+        const emotion = prevSegment.emotion || 'neutral'
+        setCurrentEmotion(emotion)
+        setLightColor(emotion)
+      }
+    }
+  }
+
   if (!story) {
     return (
       <motion.div
@@ -368,6 +436,21 @@ function PlayerFullScreen() {
               </motion.button>
               
               <motion.button
+                onClick={handleSkipBackward}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className={`w-12 h-12 md:w-14 md:h-14 rounded-full backdrop-blur-md text-white flex items-center justify-center transition-all text-lg md:text-xl shadow-lg ${
+                  currentSegmentIndex <= 0 
+                    ? 'bg-white/10 text-white/40 cursor-not-allowed' 
+                    : 'bg-white/20 hover:bg-white/30'
+                }`}
+                title="Previous Segment"
+                disabled={currentSegmentIndex <= 0}
+              >
+                ⏮
+              </motion.button>
+              
+              <motion.button
                 onClick={togglePlay}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -383,6 +466,21 @@ function PlayerFullScreen() {
                 transition={{ duration: 2, repeat: Infinity }}
               >
                 {isPlaying ? '⏸' : '▶'}
+              </motion.button>
+              
+              <motion.button
+                onClick={handleSkipForward}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className={`w-12 h-12 md:w-14 md:h-14 rounded-full backdrop-blur-md text-white flex items-center justify-center transition-all text-lg md:text-xl shadow-lg ${
+                  story && currentSegmentIndex >= story.audio_segments.length - 1
+                    ? 'bg-white/10 text-white/40 cursor-not-allowed' 
+                    : 'bg-white/20 hover:bg-white/30'
+                }`}
+                title="Next Segment"
+                disabled={story && currentSegmentIndex >= story.audio_segments.length - 1}
+              >
+                ⏭
               </motion.button>
             </div>
 
