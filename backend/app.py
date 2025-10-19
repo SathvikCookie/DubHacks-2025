@@ -6,6 +6,7 @@ from api.stories import stories_bp
 from api.tts import tts_bp
 from api.audio import audio_bp
 from api.lights import lights_bp
+from api.voices import voices_bp
 
 def create_app():
     app = Flask(__name__)
@@ -23,6 +24,7 @@ def create_app():
     app.register_blueprint(tts_bp, url_prefix='/api/tts')
     app.register_blueprint(audio_bp, url_prefix='/api/audio')
     app.register_blueprint(lights_bp, url_prefix='/api/lights')
+    app.register_blueprint(voices_bp, url_prefix='/api/voices')
     
     # Enable CORS for all routes
     CORS(app, resources={r"/api/*": {"origins": "*"}})

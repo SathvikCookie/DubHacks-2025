@@ -21,6 +21,7 @@ def get_stories():
         'content': s.content,
         'segments': s.segments,
         'audio_segments': s.audio_segments,
+        'voice_id': s.voice_id,
         'created_at': s.created_at.isoformat(),
         'processed_at': s.processed_at.isoformat() if s.processed_at else None
     } for s in stories])
@@ -37,6 +38,7 @@ def get_story(story_id):
         'prompt': story.prompt,
         'segments': story.segments,
         'audio_segments': story.audio_segments,
+        'voice_id': story.voice_id,
         'created_at': story.created_at.isoformat(),
         'processed_at': story.processed_at.isoformat() if story.processed_at else None
     })
@@ -136,7 +138,8 @@ def create_story():
     
     Expected request body:
     {
-        "prompt": "write a story for my child about..."
+        "prompt": "write a story for my child about...",
+        "voice_id": "optional_voice_id" (defaults to "jTk8bSDoiLDLZqAVYKKr")
     }
     """
     try:
@@ -149,7 +152,11 @@ def create_story():
         if not data.get('prompt'):
             return jsonify({'error': 'Missing required field: prompt'}), 400
         
+        # Get voice_id from request or use default
+        voice_id = data.get('voice_id', 'jTk8bSDoiLDLZqAVYKKr')
+        
         print(f"\n🤖 Generating story from prompt: {data['prompt'][:100]}...")
+        print(f"🎤 Using voice ID: {voice_id}")
         
         # Generate story using Gemini
         gemini_response = gemini_generate_story(data['prompt'])
@@ -178,7 +185,8 @@ def create_story():
             title=generated_content['title'],
             content=full_content,
             prompt=data.get('prompt'),
-            segments=generated_content['segments']
+            segments=generated_content['segments'],
+            voice_id=voice_id
         )
         db.session.add(story)
         db.session.commit()
@@ -191,7 +199,7 @@ def create_story():
         audio_metadata = processor.process_story_segments(
             story_uuid=story.uuid,
             segments=generated_content['segments'],
-            voice_id="jTk8bSDoiLDLZqAVYKKr"  # Aayan voice
+            voice_id=voice_id
         )
         
         # Store audio metadata in story

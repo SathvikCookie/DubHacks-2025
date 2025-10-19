@@ -14,6 +14,7 @@ class Story(db.Model):
     prompt = db.Column(db.Text)
     segments = db.Column(db.JSON, nullable=False)  # Gemini segments: [{"text": "...", "emotion": "sad"}]
     audio_segments = db.Column(db.JSON)  # Audio file metadata: [{"segment_index": 0, "text": "...", "emotion": "sad", "audio_file": "path", "duration": 5.2}]
+    voice_id = db.Column(db.String(100), default="jTk8bSDoiLDLZqAVYKKr")  # ElevenLabs voice ID
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     processed_at = db.Column(db.DateTime)  # When audio processing completed
     
