@@ -1,4 +1,4 @@
-# 📚 Storybook - AI-Powered Emotional Learning for Kids
+# 📚 StoryLume - AI-Powered Emotional Learning for Kids
 
 > **DubHacks 2025 Hackathon Project**
 > 
@@ -6,7 +6,7 @@
 
 ## 🎯 Overview
 
-Storybook combines visual, auditory, and textual learning methods to teach emotional literacy. Parents can generate custom stories, add their own voice narration, and watch as the app maps emotions to calming colors during playback.
+StoryLume combines visual, auditory, and textual learning methods to teach emotional literacy. Parents can generate custom stories, add their own voice narration, and watch as the app maps emotions to calming colors during playback.
 
 **Demo-ready frontend included** - works without backend setup!
 

@@ -110,7 +110,7 @@ function StoriesList() {
                 animate={{ x: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                ✨ Storybook
+                ✨ StoryLume
               </motion.h1>
               <p className="text-white/70">Magical stories for emotional learning</p>
             </div>

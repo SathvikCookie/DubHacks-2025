@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Custom storybook dark theme colors
+        // Custom StoryLume dark theme colors
         'story-dark': {
           950: '#0f0a1e',
           900: '#1a0f2e',

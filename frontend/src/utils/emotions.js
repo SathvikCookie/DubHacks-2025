@@ -1,4 +1,4 @@
-// Emotion color mappings and utilities for the storybook app
+// Emotion color mappings and utilities for the storylume app
 
 export const emotionColors = {
   happy: '#FACC15',      // Warm yellow
