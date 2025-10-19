@@ -8,9 +8,9 @@ load_dotenv()
 lights_bp = Blueprint('lights', __name__)
 
 GOVEE_API_URL = 'https://openapi.api.govee.com/router/api/v1/device/control'
-GOVEE_API_KEY = os.getenv('VITE_GOVEE_API_KEY', '')
-GOVEE_DEVICE_ID = os.getenv('VITE_GOVEE_DEVICE_ID', '')
-GOVEE_DEVICE_SKU = os.getenv('VITE_GOVEE_DEVICE_SKU', '')
+GOVEE_API_KEY = os.getenv('GOVEE_API_KEY', '')
+GOVEE_DEVICE_ID = os.getenv('GOVEE_DEVICE_ID', '')
+GOVEE_DEVICE_SKU = os.getenv('GOVEE_DEVICE_SKU', '')
 
 @lights_bp.route('/set-color', methods=['POST'])
 def set_color():
