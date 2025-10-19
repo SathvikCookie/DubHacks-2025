@@ -64,6 +64,12 @@ function StoriesList() {
               <h1 className="text-4xl font-bold text-gray-800">✨ Storybook</h1>
               <p className="text-gray-600 mt-1">Magical stories for emotional learning</p>
             </div>
+            <Link
+              to="/create"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            >
+              + Create Story
+            </Link>
           </div>
         </div>
       </div>

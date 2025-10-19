@@ -1,129 +1,87 @@
-/**
- * Light Controller - Handles communication with smart lights
- * 
- * This module provides functions to control smart lights based on story emotions.
- * Replace the placeholder functions with actual API calls to your light system.
- */
+// Govee Light Control Integration
+// Controls smart lights based on story emotions
 
-// Emotion to color mapping
+// Use backend proxy to avoid CORS issues
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api'
+const LIGHTS_API_URL = `${API_BASE}/lights/set-color`
+
+// Check if lights are enabled (backend will validate credentials)
+const GOVEE_ENABLED = true  // Always try, backend will handle if not configured
+
+// Emotion to RGB color mapping
 const EMOTION_COLORS = {
-  happy: { r: 255, g: 215, b: 0 },      // Gold/Yellow
-  sad: { r: 135, g: 206, b: 235 },      // Sky Blue
-  excited: { r: 255, g: 165, b: 0 },    // Orange
-  scared: { r: 255, g: 140, b: 105 },   // Muted Orange
-  angry: { r: 200, g: 100, b: 100 },    // Muted Red
-  neutral: { r: 160, g: 174, b: 192 }   // Gray
+  happy: { r: 255, g: 215, b: 0 },    // Gold
+  sad: { r: 135, g: 206, b: 235 },    // Sky Blue
+  excited: { r: 255, g: 165, b: 0 },  // Orange
+  scared: { r: 255, g: 140, b: 105 }, // Coral
+  angry: { r: 200, g: 100, b: 100 },  // Red-ish
+  calm: { r: 160, g: 174, b: 192 },   // Gray-Blue
+  neutral: { r: 255, g: 255, b: 255 } // White
 }
 
-/**
- * Set light color based on emotion
- * @param {string} emotion - The emotion (happy, sad, excited, scared, angry, neutral)
- * @param {number} brightness - Brightness level 0-100 (optional, default 80)
- */
-export async function setLightForEmotion(emotion, brightness = 80) {
-  const color = EMOTION_COLORS[emotion.toLowerCase()] || EMOTION_COLORS.neutral
-  
-  console.log(`💡 Setting light for emotion: ${emotion}`, color)
-  
-  // TODO: Replace with actual light API call
-  // Example for Philips Hue:
-  // await fetch('http://your-bridge-ip/api/your-key/lights/1/state', {
-  //   method: 'PUT',
-  //   body: JSON.stringify({
-  //     on: true,
-  //     bri: Math.round(brightness * 2.54), // Convert to 0-254 range
-  //     xy: rgbToXy(color.r, color.g, color.b)
-  //   })
-  // })
-  
-  // Example for generic RGB API:
-  // await fetch('http://your-light-api/set-color', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({
-  //     r: color.r,
-  //     g: color.g,
-  //     b: color.b,
-  //     brightness: brightness
-  //   })
-  // })
-  
-  // For now, just simulate with a delay
-  return new Promise(resolve => setTimeout(resolve, 100))
+// Convert RGB to Govee color value
+// Formula: value = (r * 65536) + (g * 256) + b
+function rgbToGoveeValue(r, g, b) {
+  return (r * 65536) + (g * 256) + b
 }
 
-/**
- * Turn lights off
- */
+// Get RGB color for emotion
+function getColorForEmotion(emotion) {
+  const normalizedEmotion = emotion?.toLowerCase() || 'neutral'
+  return EMOTION_COLORS[normalizedEmotion] || EMOTION_COLORS.neutral
+}
+
+// Generate unique request ID
+function generateRequestId() {
+  return `story-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+}
+
+// Set light color via backend proxy
+export async function setLightColor(emotion) {
+  console.log(`💡 Setting light color for emotion: ${emotion}`)
+  
+  try {
+    const rgb = getColorForEmotion(emotion)
+    const colorValue = rgbToGoveeValue(rgb.r, rgb.g, rgb.b)
+    
+    console.log(`   RGB: (${rgb.r}, ${rgb.g}, ${rgb.b}) → ${colorValue}`)
+
+    // Send request to backend proxy
+    const response = await fetch(LIGHTS_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        emotion: emotion,
+        colorValue: colorValue,
+        requestId: generateRequestId()
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      if (response.status === 503) {
+        console.log('   ℹ️  Govee lights not configured on backend')
+        return
+      }
+      throw new Error(`HTTP ${response.status}: ${error.error || 'Unknown error'}`)
+    }
+
+    const result = await response.json()
+    console.log('   ✓ Light color set:', result.color)
+    console.log('   ✓ Brightness set:', result.brightness)
+
+  } catch (error) {
+    console.error('   ✗ Error setting light color:', error)
+  }
+}
+
+// Turn lights off (TODO: implement backend endpoint if needed)
 export async function turnLightsOff() {
-  console.log('💡 Turning lights off')
-  
-  // TODO: Replace with actual API call
-  // await fetch('http://your-light-api/off', { method: 'POST' })
-  
-  return new Promise(resolve => setTimeout(resolve, 100))
+  console.log('💡 Turn off lights feature - not yet implemented')
+  // Backend endpoint would need to be created for this
 }
 
-/**
- * Fade transition between colors
- * @param {string} fromEmotion - Starting emotion
- * @param {string} toEmotion - Target emotion
- * @param {number} durationMs - Transition duration in milliseconds
- */
-export async function fadeTransition(fromEmotion, toEmotion, durationMs = 1000) {
-  console.log(`💡 Fading from ${fromEmotion} to ${toEmotion} over ${durationMs}ms`)
-  
-  // TODO: Implement smooth color transition
-  // This would require multiple API calls to gradually change the color
-  
-  // For now, just set the target color
-  await setLightForEmotion(toEmotion)
-}
-
-/**
- * Get hex color for emotion (for UI display)
- */
-export function getColorHexForEmotion(emotion) {
-  const color = EMOTION_COLORS[emotion.toLowerCase()] || EMOTION_COLORS.neutral
-  return `#${color.r.toString(16).padStart(2, '0')}${color.g.toString(16).padStart(2, '0')}${color.b.toString(16).padStart(2, '0')}`
-}
-
-/**
- * Get RGB color for emotion
- */
-export function getColorRGBForEmotion(emotion) {
-  return EMOTION_COLORS[emotion.toLowerCase()] || EMOTION_COLORS.neutral
-}
-
-// Helper function to convert RGB to XY color space (for Philips Hue)
-function rgbToXy(r, g, b) {
-  // Normalize RGB values
-  r = r / 255
-  g = g / 255
-  b = b / 255
-
-  // Apply gamma correction
-  r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92
-  g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92
-  b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92
-
-  // Convert to XYZ
-  const X = r * 0.649926 + g * 0.103455 + b * 0.197109
-  const Y = r * 0.234327 + g * 0.743075 + b * 0.022598
-  const Z = r * 0.000000 + g * 0.053077 + b * 1.035763
-
-  // Convert to xy
-  const x = X / (X + Y + Z)
-  const y = Y / (X + Y + Z)
-
-  return [x, y]
-}
-
-export default {
-  setLightForEmotion,
-  turnLightsOff,
-  fadeTransition,
-  getColorHexForEmotion,
-  getColorRGBForEmotion
-}
-
+// Export emotion colors for UI use
+export { EMOTION_COLORS }

@@ -43,7 +43,7 @@ class StoryAudioProcessor:
             return f"{{{style}}} {text}"
         return text
     
-    def process_segment(self, segment, voice_id="t9aQ9igYdTOv1RmpYub9"):
+    def process_segment(self, segment, voice_id="jTk8bSDoiLDLZqAVYKKr"):
         """
         Process a single segment through ElevenLabs API
         
@@ -81,7 +81,7 @@ class StoryAudioProcessor:
                 print(f"  Response: {e.response.text}")
             return None
     
-    def process_story_segments(self, story_uuid, segments, voice_id="t9aQ9igYdTOv1RmpYub9", delay=1.0):
+    def process_story_segments(self, story_uuid, segments, voice_id="jTk8bSDoiLDLZqAVYKKr", delay=1.0):
         """
         Process all segments of a story through ElevenLabs API
         

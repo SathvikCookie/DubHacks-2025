@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { getStory, getAudioUrl } from '../services/api'
+import { setLightColor } from '../utils/lightController'
 import EmotionStrip from '../components/EmotionStrip'
 
 function PlayerFullScreen() {
@@ -29,18 +30,10 @@ function PlayerFullScreen() {
       audioFile: story.audio_segments[segmentIndex]?.filename
     })
 
-    // TODO: Replace this with actual light API call
-    // Example:
-    // fetch('http://light-api/set-color', {
-    //   method: 'POST',
-    //   body: JSON.stringify({ 
-    //     emotion: segment.emotion,
-    //     color: getColorForEmotion(segment.emotion)
-    //   })
-    // })
-
-    // For now, just log the emotion change
-    console.log(`💡 Light should change to: ${segment.emotion}`)
+    // Set Govee light color based on emotion
+    const emotion = segment?.emotion || 'neutral'
+    console.log(`💡 Setting light to: ${emotion}`)
+    setLightColor(emotion)
   }
 
   // Load and play a specific segment
