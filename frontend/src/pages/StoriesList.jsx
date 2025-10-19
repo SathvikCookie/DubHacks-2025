@@ -112,7 +112,6 @@ function StoriesList() {
               >
                 ✨ StoryLume
               </motion.h1>
-              <p className="text-white/70">Magical stories for emotional learning</p>
             </div>
             <Link
               to="/create"
@@ -277,15 +276,10 @@ function StoryCard({ story, index, onDelete }) {
           
           {/* Story metadata */}
           <div className="space-y-2 mb-4">
-            <div className="flex items-center gap-2 text-sm text-white/60">
-              <span>📝</span>
-              <span>{story.segments?.length || 0} segments</span>
-            </div>
-            
             {hasAudio ? (
               <div className="flex items-center gap-2 text-sm text-green-400">
                 <span>🎵</span>
-                <span>{audioCount} audio files ready</span>
+                <span>Audio ready</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 text-sm text-white/40">

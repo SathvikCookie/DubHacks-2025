@@ -104,9 +104,6 @@ function StoryCreate() {
           >
             ✨ Create New Story
           </motion.h1>
-          <p className="text-white/70 text-lg">
-            Generate a magical AI story with emotion-aware narration
-          </p>
         </motion.div>
 
         {/* Form */}
@@ -124,24 +121,20 @@ function StoryCreate() {
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
-                🤖
+                🧙‍♂️
               </motion.div>
               <div>
                 <h2 className="text-3xl font-semibold text-white mb-2">
-                  AI Story Generator
+                  Story Writer
                 </h2>
                 <p className="text-white/70">
-                  Describe your story idea and our AI will create a personalized bedtime story
-                  with emotion-aware narration and audio
+                  Describe your story idea to get a personalized bedtime story — complete with emotion-aware narration and immersive audio.
                 </p>
               </div>
             </div>
             
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-white/90 mb-3">
-                  Story Prompt *
-                </label>
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
@@ -152,12 +145,12 @@ function StoryCreate() {
                            text-white placeholder-white/40 transition-all 
                            disabled:bg-white/5 disabled:cursor-not-allowed
                            backdrop-blur-sm"
-                  placeholder="Example: Write a story for my child about being brave. My kid's name is Alex. Use animal characters and teach a lesson about trying new things."
+                  placeholder="Write a story for my child about being brave. My kid's name is Alex. Use animal characters and teach a lesson about trying new things."
                   required
                 />
                 <p className="text-white/50 text-sm mt-3 flex items-start gap-2">
                   <span>💡</span>
-                  <span>Tip: Include your child's name, the lesson you want to teach, and any preferences (animals, themes, etc.)</span>
+                  <span>Tip: Include your child's name, a lesson you want to teach, or any other preferences (animals, themes, settings, etc.)</span>
                 </p>
               </div>
 
