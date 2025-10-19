@@ -294,121 +294,123 @@ function PlayerFullScreen() {
         </motion.button>
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
-        <motion.div
-          className="w-full max-w-4xl"
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          {/* Title */}
-          <motion.h1
-            className="text-4xl md:text-5xl font-bold mb-8 text-center text-white drop-shadow-lg"
-            layoutId={`story-title-${story.id}`}
+      {/* Main content - with proper scrolling container */}
+      <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
+        <div className="flex-1 overflow-y-auto py-4 md:py-8 px-4 md:px-8">
+          <motion.div
+            className="w-full max-w-4xl mx-auto flex flex-col items-center min-h-full"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 }}
           >
-            {story.title}
-          </motion.h1>
-          
-          {/* Current Emotion Badge */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentEmotion}
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5 }}
-              className="mb-6 text-center"
+            {/* Title - always visible at top */}
+            <motion.h1
+              className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 text-center text-white drop-shadow-lg px-4 flex-shrink-0"
+              layoutId={`story-title-${story.id}`}
             >
-              <div className="inline-block bg-white/20 backdrop-blur-md px-6 py-3 rounded-full border border-white/30">
-                <span className="text-white font-semibold text-lg">
-                  {getEmotionLabel(currentEmotion)}
-                </span>
-              </div>
-              <p className="text-white/80 text-sm mt-2">
-                {getEmotionMessage(currentEmotion)}
-              </p>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Current Segment Text with smooth transitions */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentSegmentIndex}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.8 }}
-              className="mb-8"
-            >
-              <GlassCard className="max-w-3xl mx-auto" hover={false}>
-                <p className="text-xl md:text-2xl text-white leading-relaxed text-center">
-                  {currentSegment.text}
-                </p>
-              </GlassCard>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Segment Counter */}
-          <div className="text-white/70 mb-6 text-center text-lg">
-            Segment {currentSegmentIndex + 1} of {totalSegments}
-          </div>
-          
-          {/* Controls */}
-          <div className="flex items-center justify-center gap-8 mb-8">
-            <motion.button
-              onClick={handleRestart}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white flex items-center justify-center transition-all text-2xl shadow-lg"
-              title="Restart"
-            >
-              ↻
-            </motion.button>
+              {story.title}
+            </motion.h1>
             
-            <motion.button
-              onClick={togglePlay}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="w-28 h-28 rounded-full bg-white/90 hover:bg-white text-gray-900 flex items-center justify-center text-4xl shadow-2xl transition-all"
-              title={isPlaying ? 'Pause' : 'Play'}
-              animate={isPlaying ? {
-                boxShadow: [
-                  '0 20px 60px rgba(255, 255, 255, 0.3)',
-                  '0 20px 80px rgba(255, 255, 255, 0.5)',
-                  '0 20px 60px rgba(255, 255, 255, 0.3)'
-                ]
-              } : {}}
+            {/* Current Emotion Badge */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentEmotion}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.5 }}
+                className="mb-3 md:mb-4 text-center flex-shrink-0"
+              >
+                <div className="inline-block bg-white/20 backdrop-blur-md px-3 md:px-5 py-2 rounded-full border border-white/30">
+                  <span className="text-white font-semibold text-sm md:text-base">
+                    {getEmotionLabel(currentEmotion)}
+                  </span>
+                </div>
+                <p className="text-white/80 text-xs mt-1">
+                  {getEmotionMessage(currentEmotion)}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Current Segment Text with smooth transitions and controlled height */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSegmentIndex}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.8 }}
+                className="mb-3 md:mb-4 w-full max-w-3xl px-2 flex-shrink-0"
+              >
+                <GlassCard className="max-h-[30vh] overflow-y-auto custom-scrollbar" hover={false}>
+                  <p className="text-base md:text-lg lg:text-xl text-white leading-relaxed text-center">
+                    {currentSegment.text}
+                  </p>
+                </GlassCard>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Segment Counter */}
+            <div className="text-white/70 mb-3 md:mb-4 text-center text-sm md:text-base flex-shrink-0">
+              Segment {currentSegmentIndex + 1} of {totalSegments}
+            </div>
+            
+            {/* Controls */}
+            <div className="flex items-center justify-center gap-4 md:gap-6 mb-3 md:mb-4 flex-shrink-0">
+              <motion.button
+                onClick={handleRestart}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white flex items-center justify-center transition-all text-lg md:text-xl shadow-lg"
+                title="Restart"
+              >
+                ↻
+              </motion.button>
+              
+              <motion.button
+                onClick={togglePlay}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/90 hover:bg-white text-gray-900 flex items-center justify-center text-3xl shadow-2xl transition-all"
+                title={isPlaying ? 'Pause' : 'Play'}
+                animate={isPlaying ? {
+                  boxShadow: [
+                    '0 20px 60px rgba(255, 255, 255, 0.3)',
+                    '0 20px 80px rgba(255, 255, 255, 0.5)',
+                    '0 20px 60px rgba(255, 255, 255, 0.3)'
+                  ]
+                } : {}}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                {isPlaying ? '⏸' : '▶'}
+              </motion.button>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full max-w-2xl px-2 mb-3 flex-shrink-0">
+              <div className="h-2 md:h-3 bg-white/20 rounded-full backdrop-blur-sm overflow-hidden">
+                <motion.div 
+                  className="h-full bg-white/90 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+              <div className="mt-2 text-center text-white/70 text-xs">
+                {Math.round(progress)}% complete
+              </div>
+            </div>
+
+            {/* Status */}
+            <motion.div
+              className="mt-2 text-center text-white/70 text-xs mb-4 flex-shrink-0"
+              animate={{ opacity: [0.7, 1, 0.7] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              {isPlaying ? '⏸' : '▶'}
-            </motion.button>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full max-w-2xl mx-auto">
-            <div className="h-3 bg-white/20 rounded-full backdrop-blur-sm overflow-hidden">
-              <motion.div 
-                className="h-full bg-white/90 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.5 }}
-              />
-            </div>
-            <div className="mt-3 text-center text-white/70 text-sm">
-              {Math.round(progress)}% complete
-            </div>
-          </div>
-
-          {/* Status */}
-          <motion.div
-            className="mt-6 text-center text-white/70 text-sm"
-            animate={{ opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            {isPlaying ? '🎵 Playing...' : progress === 100 ? '✓ Complete' : progress === 0 ? '🎧 Ready to play' : '⏸ Paused'}
+              {isPlaying ? '🎵 Playing...' : progress === 100 ? '✓ Complete' : progress === 0 ? '🎧 Ready to play' : '⏸ Paused'}
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
     </motion.div>
   )

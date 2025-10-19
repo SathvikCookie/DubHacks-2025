@@ -41,17 +41,23 @@
 }
 
 @layer utilities {
-  /* Custom scrollbar for dark theme */
+  /* Custom scrollbar for dark theme - subtle and calm */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-story-dark-900 rounded-full;
+    background: transparent;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-story-purple-600 rounded-full hover:bg-story-purple-500;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    transition: background 0.2s ease;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
   }
 
   /* Text gradient */
